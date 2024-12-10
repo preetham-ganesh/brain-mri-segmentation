@@ -83,3 +83,40 @@ class ImageClassification(tf.keras.Model):
                 self.model_layers[name] = tf.keras.layers.GlobalAveragePooling2D(
                     name=name
                 )
+
+    def call(
+        self,
+        inputs: List[tf.Tensor],
+        training: bool = False,
+        masks: List[tf.Tensor] = None,
+    ) -> List[tf.Tensor]:
+        """Input tensor is passed through the layers in the model.
+
+        Input tensor is passed through the layers in the model.
+
+        Args:
+            inputs: A list for the inputs from the input batch.
+            training: A boolean value for the flag of training/testing state.
+            masks: A tensor for the masks from the input batch.
+
+        Returns:
+            A tensor for the processed output from the components in the layer.
+        """
+        # Asserts type & values of the input arguments.
+        assert isinstance(inputs, list), "Variable inputs should be of type 'list'."
+        assert isinstance(training, bool), "Variable training should be of type 'bool'."
+        assert (
+            isinstance(masks, list) or masks is None
+        ), "Variable masks should be of type 'list' or masks should have value as 'None'."
+
+        # Iterates across the layers arrangement, and predicts the output for each layer.
+        x = inputs[0]
+        for name in self.model_configuration["model"]["layers"]["arrangement"]:
+            # If layer's name is like 'dropout_', the following output is predicted.
+            if name.split("_")[0] == "dropout":
+                x = self.model_layers[name](x, training=training)
+
+            # Else, the following output is predicted.
+            else:
+                x = self.model_layers[name](x)
+        return [x]
