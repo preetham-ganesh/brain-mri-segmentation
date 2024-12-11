@@ -68,7 +68,7 @@ def load_dataset_file_paths() -> List[Dict[str, str]]:
         None.
 
     Returns:
-        None.
+        A list of dictionaries for image & mask file paths.
     """
     home_directory_path = os.getcwd()
     extracted_data_directory_path = (
