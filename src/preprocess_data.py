@@ -13,6 +13,7 @@ warnings.filterwarnings("ignore")
 
 import numpy as np
 import skimage
+import cv2
 
 from src.utils import check_directory_path_existence
 
@@ -150,5 +151,65 @@ def load_image(image_file_path: str) -> np.ndarray:
     return image
 
 
-extract_data_from_zip_file()
-file_paths = load_dataset_file_paths()
+def preprocess_dataset(file_paths: List[Dict[str, str]], dataset_version: str) -> None:
+    """Preprocesses the images in the dataset to split them into 2 categories, abnormality & no abnormality.
+
+    Preprocesses the images in the dataset to split them into 2 categories, abnormality & no abnormality.
+
+    Args:
+        file_paths: A list of dictionaries for image & mask file paths in the dataset.
+        dataset_version: A string for the version by which the dataset should be saved as.
+
+    Returns:
+        None.
+    """
+    # Checks if the following directory path exists.
+    no_abnormality_images_directory_path = check_directory_path_existence(
+        "data/processed_data/lgg_mri_segmentation/v{}/no_abnormality/images".format(
+            dataset_version
+        )
+    )
+    no_abnormality_masks_directory_path = check_directory_path_existence(
+        "data/processed_data/lgg_mri_segmentation/v{}/no_abnormality/masks".format(
+            dataset_version
+        )
+    )
+    abnormality_images_directory_path = check_directory_path_existence(
+        "data/processed_data/lgg_mri_segmentation/v{}/abnormality/images".format(
+            dataset_version
+        )
+    )
+    abnormality_masks_directory_path = check_directory_path_existence(
+        "data/processed_data/lgg_mri_segmentation/v{}/abnormality/masks".format(
+            dataset_version
+        )
+    )
+
+    # Iterates across files in the dataset.
+    n_files = len(file_paths)
+    abnormality_count, no_abnormality_count = 0, 0
+    for f_id in range(n_files):
+
+        # Loads the image for the current image path.
+        image = load_image(file_paths[f_id]["image_file_paths"])
+        mask = load_image(file_paths[f_id]["mask_file_paths"])
+
+        # Checks if mask image has pixel value apart from 0. Saves image & mask accordingly.
+        if np.any(mask != 0):
+            cv2.imwrite(
+                "{}/{}.png".format(abnormality_images_directory_path, f_id), image
+            )
+            cv2.imwrite(
+                "{}/{}.png".format(abnormality_masks_directory_path, f_id), mask
+            )
+            abnormality_count += 1
+        else:
+            cv2.imwrite(
+                "{}/{}.png".format(no_abnormality_images_directory_path, f_id), image
+            )
+            cv2.imwrite(
+                "{}/{}.png".format(no_abnormality_masks_directory_path, f_id), mask
+            )
+            no_abnormality_count += 1
+    print("No. of images in the no abnormality class: {}".format(no_abnormality_count))
+    print("No. of images in the abnormality class: {}".format(abnormality_count))
