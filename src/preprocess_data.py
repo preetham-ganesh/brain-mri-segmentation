@@ -11,6 +11,9 @@ sys.path.append(BASE_PATH)
 warnings.filterwarnings("ignore")
 
 
+import numpy as np
+import skimage
+
 from src.utils import check_directory_path_existence
 
 from typing import Dict, List
@@ -123,3 +126,29 @@ def load_dataset_file_paths() -> List[Dict[str, str]]:
         "No. of image & mask pair examples in the dataset: {}".format(len(file_paths))
     )
     print()
+    return file_paths
+
+
+def load_image(image_file_path: str) -> np.ndarray:
+    """Loads the image for the current image path.
+
+    Loads the image for the current image path.
+
+    Args:
+        image_file_path: A string for the location where the image is located.
+
+    Returns:
+        A NumPy array for the image loaded from the file path.
+    """
+    # Checks type & values of arguments.
+    assert isinstance(
+        image_file_path, str
+    ), "Variable image_file_path should be of type 'str'."
+
+    # Loads the image for the current image path.
+    image = skimage.io.imread(image_file_path)
+    return image
+
+
+extract_data_from_zip_file()
+file_paths = load_dataset_file_paths()
