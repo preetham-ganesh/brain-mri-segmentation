@@ -211,5 +211,41 @@ def preprocess_dataset(file_paths: List[Dict[str, str]], dataset_version: str) -
                 "{}/{}.png".format(no_abnormality_masks_directory_path, f_id), mask
             )
             no_abnormality_count += 1
+
+        if f_id % 1000 == 0 and f_id != 0:
+            print(
+                "Finished processing {}% images & masks in the dataset.".format(
+                    round((f_id / n_files) * 100, 3)
+                )
+            )
+    print()
     print("No. of images in the no abnormality class: {}".format(no_abnormality_count))
     print("No. of images in the abnormality class: {}".format(abnormality_count))
+    print()
+
+
+def main():
+    print()
+    # Parses the arguments.
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-dv",
+        "--dataset_version",
+        type=str,
+        required=True,
+        help="Version by which the processed dataset should be saved as.",
+    )
+    args = parser.parse_args()
+
+    # Extracts files from downloaded data zip file.
+    extract_data_from_zip_file()
+
+    # Loads file paths of images & masks in the dataset.
+    file_paths = load_dataset_file_paths()
+
+    # Preprocesses the images in the dataset to split them into 2 categories, abnormality & no abnormality.
+    preprocess_dataset(file_paths, args.dataset_version)
+
+
+if __name__ == "__main__":
+    main()
