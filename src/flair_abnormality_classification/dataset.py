@@ -41,56 +41,41 @@ class Dataset(object):
             None.
         """
         # Creates absolute directory paths for the following image directories.
-        no_abnormality_images_directory_path = check_directory_path_existence(
-            "data/processed_data/lgg_mri_segmentation/v{}/no_abnormality/images".format(
-                self.model_configuration["dataset"]["version"],
-            )
+        base_directory_path = "data/processed_data/lgg_mri_segmentation/v{}".format(
+            self.model_configuration["dataset"]["version"]
         )
-        abnormality_images_directory_path = check_directory_path_existence(
-            "data/processed_data/lgg_mri_segmentation/v{}/abnormality/images".format(
-                self.model_configuration["dataset"]["version"],
-            )
-        )
+        images_directory_paths = {
+            "no_abnormality": check_directory_path_existence(
+                "{}/no_abnormality/images".format(base_directory_path)
+            ),
+            "abnormality": check_directory_path_existence(
+                "{}/no_abnormality/images".format(base_directory_path)
+            ),
+        }
 
-        # Lists names of files in the directories.
-        abnormality_image_names = os.listdir(abnormality_images_directory_path)
-        no_abnormality_image_names = os.listdir(abnormality_images_directory_path)
-
-        # Iterates across image names in the abnormality class.
+        # Iterates across directories in the dataset.
         self.file_paths = list()
-        for image_name in abnormality_image_names:
+        for label, directory_path in enumerate(images_directory_paths.values()):
 
-            # If first letter of image name is '.', then ignores the image.
-            if image_name[0] != ".":
-                continue
+            # Lists names of files in the directory.
+            image_names = os.listdir(directory_path)
 
-            # Appends image file path & class 1 to the list.
-            self.file_paths.append(
-                {
-                    "image_file_path": "{}/{}".format(
-                        abnormality_images_directory_path, image_name
-                    ),
-                    "class": 1,
-                }
-            )
+            # Iterates across images in the directory.
+            for i_id in range(len(image_names)):
 
-        # Iterates across image names in the abnormality class.
-        self.file_paths = list()
-        for image_name in no_abnormality_image_names:
+                # If first letter of image name is '.', then ignores the image.
+                if image_names[i_id][0] != ".":
+                    continue
 
-            # If first letter of image name is '.', then ignores the image.
-            if image_name[0] != ".":
-                continue
-
-            # Appends image file path & class 1 to the list.
-            self.file_paths.append(
-                {
-                    "image_file_path": "{}/{}".format(
-                        no_abnormality_images_directory_path, image_name
-                    ),
-                    "class": 0,
-                }
-            )
+                # Appends image file path & class 1 to the list.
+                self.file_paths.append(
+                    {
+                        "image_file_path": "{}/{}".format(
+                            directory_path, image_names[i_id]
+                        ),
+                        "class": label,
+                    }
+                )
 
         # Converts list of file paths as records into dataframe.
         self.file_paths = pd.DataFrame.from_records(self.file_paths)
