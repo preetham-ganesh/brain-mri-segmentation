@@ -500,3 +500,46 @@ class Train(object):
                 print()
                 break
             print()
+
+    def test_model(self) -> None:
+        """Tests the trained model using the test dataset.
+
+        Tests the trained model using the test dataset.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        # Resets states for validation metrics.
+        self.reset_metrics_trackers()
+
+        # Restore latest saved checkpoint if available.
+        self.checkpoint.restore(
+            tf.train.latest_checkpoint(self.checkpoint_directory_path)
+        ).assert_consumed()
+
+        # Iterates across batches in the train dataset.
+        for batch, (images, labels) in enumerate(
+            self.dataset.test_dataset.take(self.dataset.n_test_steps_per_epoch)
+        ):
+            # Loads input & target sequences for current batch as tensors.
+            input_batch, target_batch = self.dataset.load_input_target_batches(
+                list(images.numpy()), list(labels.numpy())
+            )
+
+            # Tests the model using the current input and target batch.
+            self.validation_step(input_batch, target_batch)
+
+        print(f"Test loss: {self.validation_loss.result().numpy():.3f}.")
+        print(f"Test accuracy: {self.validation_accuracy.result().numpy():.3f}")
+        print()
+
+        # Logs test metrics for current epoch.
+        mlflow.log_metrics(
+            {
+                "test_loss": self.validation_loss.result().numpy(),
+                "test_accuracy": self.validation_accuracy.result().numpy(),
+            }
+        )
