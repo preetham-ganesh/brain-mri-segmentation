@@ -33,7 +33,7 @@ def extract_data_from_zip_file() -> None:
     """
     # Creates absolute directory path for downloaded data zip file.
     home_directory_path = os.getcwd()
-    zip_file_path = "{}/data/raw_data/archive.zip".format(home_directory_path)
+    zip_file_path = os.path.join(home_directory_path, "data/raw_data/archive.zip")
 
     # Creates the directory path.
     extracted_data_directory_path = check_directory_path_existence(
@@ -42,7 +42,7 @@ def extract_data_from_zip_file() -> None:
 
     # If file does not exist, then extracts files from the directory.
     if not os.path.exists(
-        "{}/kaggle_3m/data.csv".format(extracted_data_directory_path)
+        os.path.join(extracted_data_directory_path, "/kaggle_3m/data.csv")
     ):
 
         # Extracts files from downloaded data zip file into a directory.
@@ -51,14 +51,12 @@ def extract_data_from_zip_file() -> None:
                 zip_file.extractall(extracted_data_directory_path)
         except FileNotFoundError as error:
             raise FileNotFoundError(
-                "{} does not exist. Download data from "
+                f"{zip_file_path} does not exist. Download data from "
                 "'https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation', and place it in "
-                "'data/raw_data' as 'archive.zip'.".format(zip_file_path)
+                "'data/raw_data' as 'archive.zip'."
             )
         print(
-            "Finished extracting files from 'archive.zip' to {}.".format(
-                extracted_data_directory_path
-            )
+            f"Finished extracting files from 'archive.zip' to {extracted_data_directory_path}."
         )
         print()
 
@@ -75,14 +73,14 @@ def load_dataset_file_paths() -> List[Dict[str, str]]:
         A list of dictionaries for image & mask file paths.
     """
     home_directory_path = os.getcwd()
-    extracted_data_directory_path = (
-        "{}/data/extracted_data/lgg_mri_segmentation".format(home_directory_path)
+    extracted_data_directory_path = os.path.join(
+        home_directory_path, "data/extracted_data/lgg_mri_segmentation"
     )
 
     # Lists patient's directory names from the extracted data.
     home_directory_path = os.getcwd()
     patients_directory_names = os.listdir(
-        "{}/kaggle_3m".format(extracted_data_directory_path)
+        os.path.join(extracted_data_directory_path, "kaggle_3m")
     )
 
     # Creates empty list to store image & mask file paths as records.
@@ -90,8 +88,8 @@ def load_dataset_file_paths() -> List[Dict[str, str]]:
 
     # Iterates across patients directory names.
     for directory_name in patients_directory_names:
-        patient_directory_path = "{}/kaggle_3m/{}".format(
-            extracted_data_directory_path, directory_name
+        patient_directory_path = os.path.join(
+            extracted_data_directory_path, "kaggle_3m", directory_name
         )
 
         # If directory name is not a directory or does not start with 'TCGA'.
@@ -107,11 +105,11 @@ def load_dataset_file_paths() -> List[Dict[str, str]]:
         n_images = len(image_file_names) // 2
         image_id = 0
         while image_id <= n_images:
-            image_file_path = "{}/{}_{}.tif".format(
-                patient_directory_path, directory_name, image_id + 1
+            image_file_path = os.path.join(
+                patient_directory_path, f"{directory_name}_{image_id + 1}.tif"
             )
-            mask_file_path = "{}/{}_{}_mask.tif".format(
-                patient_directory_path, directory_name, image_id + 1
+            mask_file_path = os.path.join(
+                patient_directory_path, f"{directory_name}_{image_id + 1}_mask.tif"
             )
 
             # Checks if image & mask file paths are valid.
@@ -123,9 +121,7 @@ def load_dataset_file_paths() -> List[Dict[str, str]]:
                     }
                 )
             image_id += 1
-    print(
-        "No. of image & mask pair examples in the dataset: {}".format(len(file_paths))
-    )
+    print(f"No. of image & mask pair examples in the dataset: {len(file_paths)}")
     print()
     return file_paths
 
@@ -165,24 +161,16 @@ def preprocess_dataset(file_paths: List[Dict[str, str]], dataset_version: str) -
     """
     # Checks if the following directory path exists.
     no_abnormality_images_directory_path = check_directory_path_existence(
-        "data/processed_data/lgg_mri_segmentation/v{}/no_abnormality/images".format(
-            dataset_version
-        )
+        f"data/processed_data/lgg_mri_segmentation/v{dataset_version}/no_abnormality/images"
     )
     no_abnormality_masks_directory_path = check_directory_path_existence(
-        "data/processed_data/lgg_mri_segmentation/v{}/no_abnormality/masks".format(
-            dataset_version
-        )
+        f"data/processed_data/lgg_mri_segmentation/v{dataset_version}/no_abnormality/masks"
     )
     abnormality_images_directory_path = check_directory_path_existence(
-        "data/processed_data/lgg_mri_segmentation/v{}/abnormality/images".format(
-            dataset_version
-        )
+        f"data/processed_data/lgg_mri_segmentation/v{dataset_version}/abnormality/images"
     )
     abnormality_masks_directory_path = check_directory_path_existence(
-        "data/processed_data/lgg_mri_segmentation/v{}/abnormality/masks".format(
-            dataset_version
-        )
+        f"data/processed_data/lgg_mri_segmentation/v{dataset_version}/abnormality/masks"
     )
 
     # Iterates across files in the dataset.
@@ -197,30 +185,28 @@ def preprocess_dataset(file_paths: List[Dict[str, str]], dataset_version: str) -
         # Checks if mask image has pixel value apart from 0. Saves image & mask accordingly.
         if np.any(mask != 0):
             cv2.imwrite(
-                "{}/{}.png".format(abnormality_images_directory_path, f_id), image
+                os.path.join(abnormality_images_directory_path, f"{f_id}.png"), image
             )
             cv2.imwrite(
-                "{}/{}.png".format(abnormality_masks_directory_path, f_id), mask
+                os.path.join(abnormality_masks_directory_path, f"{f_id}.png"), mask
             )
             abnormality_count += 1
         else:
             cv2.imwrite(
-                "{}/{}.png".format(no_abnormality_images_directory_path, f_id), image
+                os.path.join(no_abnormality_images_directory_path, f"{f_id}.png"), image
             )
             cv2.imwrite(
-                "{}/{}.png".format(no_abnormality_masks_directory_path, f_id), mask
+                os.path.join(no_abnormality_masks_directory_path, f"{f_id}.png"), mask
             )
             no_abnormality_count += 1
 
         if f_id % 1000 == 0 and f_id != 0:
             print(
-                "Finished processing {}% images & masks in the dataset.".format(
-                    round((f_id / n_files) * 100, 3)
-                )
+                f"Finished processing {round((f_id / n_files) * 100, 3)}% images & masks in the dataset."
             )
     print()
-    print("No. of images in the no abnormality class: {}".format(no_abnormality_count))
-    print("No. of images in the abnormality class: {}".format(abnormality_count))
+    print(f"No. of images in the no abnormality class: {no_abnormality_count}")
+    print(f"No. of images in the abnormality class: {abnormality_count}")
     print()
 
 
