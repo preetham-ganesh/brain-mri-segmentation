@@ -255,3 +255,32 @@ class Train(object):
         # Computes batch metrics and appends it to main metrics.
         self.train_loss(loss)
         self.train_accuracy(accuracy)
+
+    def validation_step(self, input_batch: tf.Tensor, target_batch: tf.Tensor) -> None:
+        """Validates model using current input & target batches.
+
+        Validates model using current input & target batches.
+
+        Args:
+            input_batch: A tensor for the input text from the current batch for validating the model.
+            target_batch: A tensor for the target text from the current batch for validating the model.
+
+        Returns:
+            None.
+        """
+        # Asserts type & value of the arguments.
+        assert isinstance(
+            input_batch, tf.Tensor
+        ), "Variable input_batch should be of type 'tf.Tensor'."
+        assert isinstance(
+            target_batch, tf.Tensor
+        ), "Variable target_batch should be of type 'tf.Tensor'."
+
+        # Computes the model output for current batch, and metrics for current model output.
+        predictions = self.model([input_batch], training=False, masks=None)
+        loss = self.compute_loss(target_batch, predictions[0])
+        accuracy = self.compute_accuracy(target_batch, predictions[0])
+
+        # Computes batch metrics and appends it to main metrics.
+        self.validation_loss(loss)
+        self.validation_accuracy(accuracy)
