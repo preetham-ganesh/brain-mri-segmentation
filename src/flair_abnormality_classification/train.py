@@ -1,4 +1,5 @@
 import os
+import time
 
 import tensorflow as tf
 import mlflow
@@ -300,3 +301,47 @@ class Train(object):
         self.validation_loss.reset_state()
         self.train_accuracy.reset_state()
         self.validation_accuracy.reset_state()
+
+    def train_model_per_epoch(self, epoch: int) -> None:
+        """Trains the model using train dataset for current epoch.
+
+        Trains the model using train dataset for current epoch.
+
+        Args:
+            epoch: An integer for the number of current epoch.
+
+        Returns:
+            None.
+        """
+        # Asserts type & value of the arguments.
+        assert isinstance(epoch, int), "Variable current_epoch should be of type 'int'."
+
+        # Iterates across batches in the train dataset.
+        for batch, (images, labels) in enumerate(
+            self.dataset.train_dataset.take(self.dataset.n_train_steps_per_epoch)
+        ):
+            batch_start_time = time.time()
+
+            # Loads input & target batches for images & labels in current batch.
+            input_batch, target_batch = self.dataset.load_input_target_batches(
+                list(images.numpy()), list(labels.numpy())
+            )
+
+            # Trains the model using the current input and target batch.
+            self.train_step(input_batch, target_batch)
+            batch_end_time = time.time()
+            print(
+                f"Epoch={epoch + 1}, Batch={batch}, Train loss={self.train_loss.result().numpy():.3f}, "
+                + f"Train accuracy={self.train_accuracy.result().numpy():.3f}, "
+                + f"Time taken={(batch_end_time - batch_start_time):.3f} sec."
+            )
+
+        # Logs train metrics for current epoch.
+        mlflow.log_metrics(
+            {
+                "train_loss": self.train_loss.result().numpy(),
+                "train_accuracy": self.train_accuracy.result().numpy(),
+            },
+            step=epoch,
+        )
+        print()
