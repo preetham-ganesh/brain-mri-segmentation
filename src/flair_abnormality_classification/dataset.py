@@ -2,8 +2,10 @@ import os
 
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
+import numpy as np
 
 from src.utils import check_directory_path_existence
+from src.preprocess_data import load_image
 
 from typing import Dict, List, Any
 
@@ -184,3 +186,55 @@ class Dataset(object):
         print(f"No. of validation steps per epoch: {self.n_validation_steps_per_epoch}")
         print(f"No. of test steps per epoch: {self.n_test_steps_per_epoch}")
         print()
+
+    def load_input_target_batches(
+        self, image_file_paths: List[str], labels: List[int]
+    ) -> List[tf.Tensor]:
+        """Loads input & target batches for images & labels in current batch.
+
+        Loads input & target batches for images & labels in current batch.
+
+        Args:
+            image_file_paths: A list of strings for locations of images in current batch.
+            labels: A list of integers for classes the images in current batch belongs to.
+
+        Returns:
+            A list of tensors for the input & target batches generated from images & labels.
+        """
+        # Checks types & values of arguments.
+        assert isinstance(
+            image_file_paths, list
+        ), "Variable image_file_paths should be of type 'list'."
+        assert isinstance(labels, list), "Variable labels should be of type 'list'."
+
+        # Reshapes input batch into (batch_size, final_image_height, final_image_width).
+        n_images = len(image_file_paths)
+        input_batch = np.zeros(
+            shape=(
+                n_images,
+                self.model_configuration["model"]["final_image_height"],
+                self.model_configuration["model"]["final_image_width"],
+                self.model_configuration["model"]["n_channels"],
+            ),
+            dtype=np.float32,
+        )
+
+        # Iterates across images in the batch.
+        for i_id in range(n_images):
+
+            # Loads the image for the current image path.
+            input_image = load_image(str(image_file_paths[i_id][0], "UTF-8"))
+
+            # Adds loaded & preprocessed input & target images to corresponding batch arrays.
+            input_batch[i_id, :, :, :] = input_image
+
+        # Converts images into tensor, and converts pixels into 0 - 1 range.
+        input_batch = tf.convert_to_tensor(input_batch, dtype=tf.float32)
+        input_batch /= 255.0
+
+        # Converts labels into categorical tensor.
+        target_batch = tf.keras.utils.to_categorical(
+            labels, num_classes=self.model_configuration["model"]["n_classes"]
+        )
+        target_batch = tf.convert_to_tensor(target_batch, dtype=tf.int8)
+        return [input_batch, target_batch]
