@@ -543,3 +543,125 @@ class Train(object):
                 "test_accuracy": self.validation_accuracy.result().numpy(),
             }
         )
+
+    def serialize_model(self) -> None:
+        """Serializes model as TensorFlow module & saves it as MLFlow artifact.
+
+        Serializes model as TensorFlow module & saves it as MLFlow artifact.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        # Defines input shape for exported model's input signature.
+        input_shape = [
+            None,
+            self.model_configuration["model"]["final_image_height"],
+            self.model_configuration["model"]["final_image_width"],
+            self.model_configuration["model"]["n_channels"],
+        ]
+
+        class ExportModel(tf.Module):
+            """Exports trained tensorflow model as tensorflow module for serving."""
+
+            def __init__(self, model: tf.keras.Model) -> None:
+                """Initializes the variables in the class.
+
+                    Initializes the variables in the class.
+
+                Args:
+                    model: A tensorflow model for the model trained with latest checkpoints.
+
+                Returns:
+                    None.
+                """
+                # Asserts type of input arguments.
+                assert isinstance(
+                    model, tf.keras.Model
+                ), "Variable model should be of type 'tensorflow.keras.Model'."
+
+                # Initializes class variables.
+                self.model = model
+
+            @tf.function(
+                input_signature=[tf.TensorSpec(shape=input_shape, dtype=tf.float32)]
+            )
+            def predict(self, images: tf.Tensor) -> tf.Tensor:
+                """Input image is passed through the model for prediction.
+
+                Input image is passed through the model for prediction.
+
+                Args:
+                    images: A tensor for the processed image for which the model should predict the result.
+
+                Return:
+                    An integer for the number predicted by the model for the current image.
+                """
+                prediction = self.model([images], training=False, masks=None)
+                return prediction
+
+        # Exports trained tensorflow model as tensorflow module for serving.
+        exported_model = ExportModel(self.model)
+
+        # Predicts output for the sample input using the Exported model.
+        output_0 = exported_model.predict(
+            tf.ones(
+                (
+                    10,
+                    self.model_configuration["model"]["final_image_height"],
+                    self.model_configuration["model"]["final_image_width"],
+                    self.model_configuration["model"]["n_channels"],
+                )
+            )
+        )
+
+        # Saves the tensorflow object created from the loaded model.
+        home_directory_path = os.getcwd()
+        tf.saved_model.save(
+            exported_model,
+            os.path.join(
+                home_directory_path,
+                f"models/flair_abnormality_classification/v{self.model_version}/serialized",
+            ),
+        )
+
+        # Loads the serialized model to check if the loaded model is callable.
+        exported_model = tf.saved_model.load(
+            os.path.join(
+                home_directory_path,
+                f"models/flair_abnormality_classification/v{self.model_version}/serialized",
+            )
+        )
+        output_1 = exported_model.predict(
+            tf.ones(
+                (
+                    10,
+                    self.model_configuration["model"]["final_image_height"],
+                    self.model_configuration["model"]["final_image_width"],
+                    self.model_configuration["model"]["n_channels"],
+                )
+            )
+        )
+
+        # Checks if the shape between output from saved & loaded models matches.
+        assert (
+            output_0[0].shape == output_1[0].shape
+        ), "Shape does not match between the output from saved & loaded models."
+        print("Finished serializing model & configuration files.")
+        print()
+
+        # Logs serialized model as artifact.
+        mlflow.log_artifacts(
+            os.path.join(
+                home_directory_path,
+                f"models/flair_abnormality_classification/v{self.model_version}/serialized",
+            ),
+            f"v{self.model_configuration['version']}/model",
+        )
+
+        # Logs updated model configuration as artifact.
+        mlflow.log_dict(
+            self.model_configuration, f"v{self.model_version}/model_configuration.json"
+        )
