@@ -1,5 +1,7 @@
 import os
 
+from sklearn.model_selection import train_test_split
+
 from src.utils import check_directory_path_existence
 
 from typing import Dict, List, Any
@@ -81,4 +83,57 @@ class Dataset(object):
         print(
             f"No. of no abnormality class images in the processed dataset: {self.labels.count(0)}"
         )
+        print()
+
+    def split_dataset(self) -> None:
+        """Splits file paths into new train, validation & test file paths.
+
+        Splits file paths into new train, validation & test file paths in a stratified manner.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        # Splits the original images data into new train, validation & test data (in stratified manner).
+        (
+            self.train_images_file_paths,
+            self.test_images_file_paths,
+            self.train_labels,
+            self.test_labels,
+        ) = train_test_split(
+            self.images_file_paths,
+            self.labels,
+            test_size=self.model_configuration["dataset"]["split_percentage"]["test"],
+            shuffle=True,
+            stratify=self.labels,
+            random_state=42,
+        )
+        (
+            self.train_images_file_paths,
+            self.validation_images_file_paths,
+            self.train_labels,
+            self.validation_labels,
+        ) = train_test_split(
+            self.train_images_file_paths,
+            self.train_labels,
+            test_size=self.model_configuration["dataset"]["split_percentage"][
+                "validation"
+            ],
+            shuffle=True,
+            stratify=self.labels,
+            random_state=42,
+        )
+
+        # Stores size of new train, validation and test data.
+        self.n_train_examples = len(self.train_images_file_paths)
+        self.n_validation_examples = len(self.validation_images_file_paths)
+        self.n_test_examples = len(self.test_images_file_paths)
+
+        print(f"No. of examples in the new train data: {self.n_train_examples}")
+        print(
+            f"No. of examples in the new validation data: {self.n_validation_examples}"
+        )
+        print(f"No. of examples in the new test data: {self.n_test_examples}")
         print()
