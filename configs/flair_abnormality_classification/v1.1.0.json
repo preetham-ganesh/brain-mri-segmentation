@@ -1,0 +1,192 @@
+{
+  "version": "1.1.0",
+  "dataset": {
+    "name": "lgg_mri_segmentation",
+    "version": "1.0.0",
+    "split_percentage": { "validation": 0.05, "test": 0.05 },
+    "n_examples": 0
+  },
+  "model": {
+    "epochs": 100,
+    "batch_size": 32,
+    "final_image_width": 256,
+    "final_image_height": 256,
+    "n_channels": 3,
+    "learning_rate": 0.001,
+    "patience_count": 3,
+    "n_classes": 2,
+    "layers": {
+      "arrangement": [
+        "conv2d_0",
+        "conv2d_1",
+        "batch_norm_0",
+        "relu_0",
+        "maxpool2d_0",
+        "dropout_0",
+        "conv2d_2",
+        "conv2d_3",
+        "batch_norm_1",
+        "relu_1",
+        "maxpool2d_1",
+        "dropout_1",
+        "conv2d_4",
+        "conv2d_5",
+        "batch_norm_2",
+        "relu_2",
+        "maxpool2d_2",
+        "dropout_2",
+        "conv2d_6",
+        "conv2d_7",
+        "batch_norm_3",
+        "relu_3",
+        "maxpool2d_3",
+        "dropout_3",
+        "conv2d_8",
+        "conv2d_9",
+        "batch_norm_4",
+        "relu_4",
+        "maxpool2d_4",
+        "dropout_4",
+        "flatten",
+        "dense_0",
+        "dense_1",
+        "dense_2"
+      ],
+      "configuration": {
+        "conv2d_0": {
+          "filters": 16,
+          "kernel_size": 3,
+          "padding": "valid",
+          "activation": "relu",
+          "strides": [1, 1]
+        },
+        "conv2d_1": {
+          "filters": 16,
+          "kernel_size": 3,
+          "padding": "valid",
+          "activation": "relu",
+          "strides": [1, 1]
+        },
+        "batch_norm_0": {},
+        "relu_0": {},
+        "maxpool2d_0": {
+          "pool_size": [2, 2],
+          "strides": [2, 2],
+          "padding": "valid"
+        },
+        "dropout_0": {
+          "rate": 0.2
+        },
+        "conv2d_2": {
+          "filters": 32,
+          "kernel_size": 3,
+          "padding": "valid",
+          "activation": "relu",
+          "strides": [1, 1]
+        },
+        "conv2d_3": {
+          "filters": 32,
+          "kernel_size": 3,
+          "padding": "valid",
+          "activation": "relu",
+          "strides": [1, 1]
+        },
+        "batch_norm_1": {},
+        "relu_1": {},
+        "maxpool2d_1": {
+          "pool_size": [2, 2],
+          "strides": [2, 2],
+          "padding": "valid"
+        },
+        "dropout_1": {
+          "rate": 0.2
+        },
+        "conv2d_4": {
+          "filters": 64,
+          "kernel_size": 3,
+          "padding": "valid",
+          "activation": "relu",
+          "strides": [1, 1]
+        },
+        "conv2d_5": {
+          "filters": 64,
+          "kernel_size": 3,
+          "padding": "valid",
+          "activation": "relu",
+          "strides": [1, 1]
+        },
+        "batch_norm_2": {},
+        "relu_2": {},
+        "maxpool2d_2": {
+          "pool_size": [2, 2],
+          "strides": [2, 2],
+          "padding": "valid"
+        },
+        "dropout_2": {
+          "rate": 0.3
+        },
+        "conv2d_6": {
+          "filters": 128,
+          "kernel_size": 3,
+          "padding": "valid",
+          "activation": "relu",
+          "strides": [1, 1]
+        },
+        "conv2d_7": {
+          "filters": 128,
+          "kernel_size": 3,
+          "padding": "valid",
+          "activation": "relu",
+          "strides": [1, 1]
+        },
+        "batch_norm_3": {},
+        "relu_3": {},
+        "maxpool2d_3": {
+          "pool_size": [2, 2],
+          "strides": [2, 2],
+          "padding": "valid"
+        },
+        "dropout_3": {
+          "rate": 0.3
+        },
+        "conv2d_8": {
+          "filters": 256,
+          "kernel_size": 3,
+          "padding": "valid",
+          "activation": "relu",
+          "strides": [1, 1]
+        },
+        "conv2d_9": {
+          "filters": 256,
+          "kernel_size": 3,
+          "padding": "valid",
+          "activation": "relu",
+          "strides": [1, 1]
+        },
+        "batch_norm_4": {},
+        "relu_4": {},
+        "maxpool2d_4": {
+          "pool_size": [2, 2],
+          "strides": [2, 2],
+          "padding": "valid"
+        },
+        "dropout_4": {
+          "rate": 0.4
+        },
+        "flatten": {},
+        "dense_0": {
+          "units": 1024,
+          "activation": "relu"
+        },
+        "dense_1": {
+          "units": 256,
+          "activation": "relu"
+        },
+        "dense_2": {
+          "units": 2,
+          "activation": "softmax"
+        }
+      }
+    }
+  }
+}
