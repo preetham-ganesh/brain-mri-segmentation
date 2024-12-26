@@ -13,9 +13,11 @@ logging.getLogger("tensorflow").setLevel(logging.FATAL)
 
 
 import tensorflow as tf
+import cv2
 
 from src.utils import load_json_file
 from src.flair_abnormality_classification.dataset import Dataset
+from src.preprocess_data import load_image
 
 
 class FlairAbnormalityClassification(object):
@@ -79,3 +81,42 @@ class FlairAbnormalityClassification(object):
 
         # Initializes object for the Dataset class.
         self.dataset = Dataset(self.model_configuration)
+
+    def load_preprocess_image(self, image_file_path: str) -> tf.Tensor:
+        """Preprocesses the image for prediction.
+
+        Preprocesses the image for prediction.
+
+        Args:
+            image_file_path: A string for the file path of the brain MRI image.
+
+        Returns:
+            A tensor for the preprocessed image.
+        """
+        # Asserts type & value of the arguments.
+        assert isinstance(
+            image_file_path, str
+        ), "Variable image_file_path of type 'str'."
+
+        # Loads the image for the current image path.
+        image = load_image(image_file_path)
+
+        # Preprocesses the image for prediction.
+        if (
+            image.shape[0] > self.model_configuration["model"]["final_image_height"]
+            or image.shape[1] > self.model_configuration["model"]["final_image_width"]
+        ):
+            image = cv2.resize(
+                image,
+                (
+                    self.model_configuration["model"]["final_image_height"],
+                    self.model_configuration["model"]["final_image_width"],
+                ),
+            )
+
+        # Converts the image to tensor.
+        image = tf.convert_to_tensor(image, dtype=tf.float32)
+
+        # Expands the dimensions of the image in the first axis.
+        image = tf.expand_dims(image, axis=0)
+        return image
