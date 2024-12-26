@@ -51,7 +51,7 @@ def load_json_file(file_name: str, directory_path: str) -> Dict[Any, Any]:
         directory_path, str
     ), "Variable directory_path should be of type 'str'."
 
-    file_path = os.path.join(directory_path, f"{file_name.json}")
+    file_path = os.path.join(directory_path, f"{file_name}.json")
 
     # Loads the JSON file as dictionary from the file location.
     try:
