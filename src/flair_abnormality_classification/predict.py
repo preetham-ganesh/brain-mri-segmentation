@@ -154,3 +154,41 @@ class FlairAbnormalityClassification(object):
             print("Class: FLAIR Abnormality detected.")
         print(f"Confidence score: {float(prediction[0].numpy()[0][predicted_label])}")
         print()
+
+
+def main():
+    print()
+
+    # Parses the arguments.
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-mv",
+        "--model_version",
+        type=str,
+        required=True,
+        help="Version of the model used to perform the prediction.",
+    )
+    parser.add_argument(
+        "-ifp",
+        "--image_file_path",
+        type=str,
+        required=True,
+        help="Location where the image is located.",
+    )
+    args = parser.parse_args()
+
+    # Creates an object for FlairAbnormalityClassification class.
+    classification = FlairAbnormalityClassification(args.model_version)
+
+    # Loads model configuration based on model version.
+    classification.load_model_configuration()
+
+    # Loads model based model configuration.
+    classification.load_model()
+
+    # Predicts mask for the current image using the current model.
+    classification.predict(args.image_file_path)
+
+
+if __name__ == "__main__":
+    main()
