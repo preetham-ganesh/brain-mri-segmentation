@@ -12,7 +12,10 @@ warnings.filterwarnings("ignore")
 logging.getLogger("tensorflow").setLevel(logging.FATAL)
 
 
+import tensorflow as tf
+
 from src.utils import load_json_file
+from src.flair_abnormality_classification.dataset import Dataset
 
 
 class FlairAbnormalityClassification(object):
@@ -53,3 +56,26 @@ class FlairAbnormalityClassification(object):
         self.model_configuration = load_json_file(
             f"v{self.model_version}", model_configuration_directory_path
         )
+
+    def load_model(self) -> None:
+        """Loads model & other utilities for prediction.
+
+        Loads model & other utilities for prediction.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        # Loads the tensorflow serialized model using model name & version.
+        self.home_directory_path = os.getcwd()
+        self.model = tf.saved_model.load(
+            os.path.join(
+                self.home_directory_path,
+                f"models/flair_abnormality_classification/v{self.model_version}/serialized",
+            )
+        )
+
+        # Initializes object for the Dataset class.
+        self.dataset = Dataset(self.model_configuration)
