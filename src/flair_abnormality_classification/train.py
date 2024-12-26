@@ -64,7 +64,7 @@ class Train(object):
         self.dataset = Dataset(self.model_configuration)
 
         # Loads the metadata for the images in the dataset.
-        self.dataset.load_images_metadata
+        self.dataset.load_images_metadata()
 
         # Splits file paths into new train, validation & test file paths.
         self.dataset.split_dataset()

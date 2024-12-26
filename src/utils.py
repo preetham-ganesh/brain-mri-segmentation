@@ -1,6 +1,7 @@
 import os
 
 import json
+import tensorflow as tf
 
 from typing import Dict, Any
 
@@ -50,7 +51,7 @@ def load_json_file(file_name: str, directory_path: str) -> Dict[Any, Any]:
         directory_path, str
     ), "Variable directory_path should be of type 'str'."
 
-    file_path = os.path.join(directory_path, f"{file_name.json}")
+    file_path = os.path.join(directory_path, f"{file_name}.json")
 
     # Loads the JSON file as dictionary from the file location.
     try:
@@ -61,3 +62,31 @@ def load_json_file(file_name: str, directory_path: str) -> Dict[Any, Any]:
 
     except FileNotFoundError:
         raise FileNotFoundError("File path {} does not exist.".format(file_path))
+
+
+def set_physical_devices_memory_limit() -> None:
+    """Sets memory limit of GPU if found in the system.
+
+    Sets memory limit of GPU if found in the system.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+    """
+    # Lists physical devices in the system.
+    gpu_devices = tf.config.list_physical_devices("GPU")
+
+    # If GPU device is found in the system, then the memory limit is set.
+    if len(gpu_devices) > 0:
+        tf.config.experimental.set_memory_growth(gpu_devices[0], enable=True)
+        gpu_available = True
+    else:
+        gpu_available = False
+
+    if gpu_available:
+        print("GPU is available and will be used as accelerator.")
+    else:
+        print("GPU is not available, hence the model will be executed on CPU.")
+    print()

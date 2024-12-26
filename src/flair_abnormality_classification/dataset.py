@@ -125,7 +125,7 @@ class Dataset(object):
                 "validation"
             ],
             shuffle=True,
-            stratify=self.labels,
+            stratify=self.train_labels,
             random_state=42,
         )
 
@@ -154,13 +154,13 @@ class Dataset(object):
         """
         # Zips images & classes into single tensor, and shuffles it.
         self.train_dataset = tf.data.Dataset.from_tensor_slices(
-            (self.train_image_file_paths, self.train_labels)
+            (self.train_images_file_paths, self.train_labels)
         )
         self.validation_dataset = tf.data.Dataset.from_tensor_slices(
-            (self.validation_image_file_paths, self.validation_labels)
+            (self.validation_images_file_paths, self.validation_labels)
         )
         self.test_dataset = tf.data.Dataset.from_tensor_slices(
-            (self.test_image_file_paths, self.test_labels)
+            (self.test_images_file_paths, self.test_labels)
         )
 
         # Slices the combined dataset based on batch size, and drops remainder values.
@@ -223,7 +223,7 @@ class Dataset(object):
         for i_id in range(n_images):
 
             # Loads the image for the current image path.
-            input_image = load_image(str(image_file_paths[i_id][0], "UTF-8"))
+            input_image = load_image(str(image_file_paths[i_id], "UTF-8"))
 
             # Adds loaded & preprocessed input & target images to corresponding batch arrays.
             input_batch[i_id, :, :, :] = input_image

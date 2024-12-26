@@ -31,8 +31,8 @@ class ImageClassification(tf.keras.Model):
         for name in self.model_configuration["model"]["layers"]["arrangement"]:
             config = self.model_configuration["model"]["layers"]["configuration"][name]
 
-            # If layer's name is like 'mobilenet_', the MobileNet model is initialized based on layer configuration.
-            if name.split("_")[0] == "mobilenet":
+            # If layer's name is like 'mobilenet', the MobileNet model is initialized based on layer configuration.
+            if name.startswith("mobilenet"):
                 self.model_layers[name] = tf.keras.applications.MobileNetV2(
                     include_top=config["include_top"],
                     weights=config["weights"],
@@ -44,8 +44,8 @@ class ImageClassification(tf.keras.Model):
                 )
                 self.model_layers[name].trainable = config["trainable"]
 
-            # If layer's name is like 'conv2d_', a Conv2D layer is initialized based on layer configuration.
-            if name.split("_")[0] == "conv2d":
+            # If layer's name is like 'conv2d', a Conv2D layer is initialized based on layer configuration.
+            if name.startswith("conv2d"):
                 self.model_layers[name] = tf.keras.layers.Conv2D(
                     filters=config["filters"],
                     kernel_size=config["kernel_size"],
@@ -55,8 +55,8 @@ class ImageClassification(tf.keras.Model):
                     name=name,
                 )
 
-            # If layer's name is like 'maxpool2d_', a MaxPool2D layer is initialized based on layer configuration.
-            elif name.split("_")[0] == "maxpool2d":
+            # If layer's name is like 'maxpool2d', a MaxPool2D layer is initialized based on layer configuration.
+            elif name.startswith("maxpool2d"):
                 self.model_layers[name] = tf.keras.layers.MaxPool2D(
                     pool_size=config["pool_size"],
                     strides=config["strides"],
@@ -64,25 +64,27 @@ class ImageClassification(tf.keras.Model):
                     name=name,
                 )
 
-            # If layer's name is like 'dense_', a Dense layer is initialized based on layer configuration.
-            elif name.split("_")[0] == "dense":
+            # If layer's name is like 'dense', a Dense layer is initialized based on layer configuration.
+            elif name.startswith("dense"):
                 self.model_layers[name] = tf.keras.layers.Dense(
                     units=config["units"], activation=config["activation"], name=name
                 )
 
-            # If layer's name is like 'dropout_', a Dropout layer is initialized based on layer configuration.
-            elif name.split("_")[0] == "dropout":
+            # If layer's name is like 'dropout', a Dropout layer is initialized based on layer configuration.
+            elif name.startswith("dropout"):
                 self.model_layers[name] = tf.keras.layers.Dropout(rate=config["rate"])
 
-            # If layer's name is like 'flatten_', a Flatten layer is initialized.
-            elif name.split("_")[0] == "flatten":
+            # If layer's name is like 'flatten', a Flatten layer is initialized.
+            elif name.startswith("flatten"):
                 self.model_layers[name] = tf.keras.layers.Flatten(name=name)
 
-            # If layer's name is like 'flatten_', a Flatten layer is initialized.
-            elif name.split("_")[0] == "globalaveragepool2d":
-                self.model_layers[name] = tf.keras.layers.GlobalAveragePooling2D(
-                    name=name
-                )
+            # If layer's name is like 'batch_norm', a Flatten layer is initialized.
+            elif name.startswith("batch_norm"):
+                self.model_layers[name] = tf.keras.layers.BatchNormalization(name=name)
+
+            # If layer's name is like 'relu', a ReLU layer is initialized.
+            elif name.startswith("relu"):
+                self.model_layers[name] = tf.keras.layers.ReLU(name=name)
 
     def call(
         self,
