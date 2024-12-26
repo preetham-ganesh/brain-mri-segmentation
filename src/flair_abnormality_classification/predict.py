@@ -14,6 +14,7 @@ logging.getLogger("tensorflow").setLevel(logging.FATAL)
 
 import tensorflow as tf
 import cv2
+import numpy as np
 
 from src.utils import load_json_file
 from src.flair_abnormality_classification.dataset import Dataset
@@ -120,3 +121,36 @@ class FlairAbnormalityClassification(object):
         # Expands the dimensions of the image in the first axis.
         image = tf.expand_dims(image, axis=0)
         return image
+
+    def predict(self, image_file_path: str) -> None:
+        """Predicts if the brain MRI image has FLAIR abnormality.
+
+        Predicts if the brain MRI image has FLAIR abnormality.
+
+        Args:
+            image_file_path: A string for the file path of the brain MRI image.
+
+        Returns:
+            None.
+        """
+        # Asserts type & value of the arguments.
+        assert isinstance(
+            image_file_path, str
+        ), "Variable image_file_path of type 'str'."
+
+        # Loads the image for the current image path.
+        image = self.load_preprocess_image(image_file_path)
+
+        # Predicts if the brain MRI image has FLAIR abnormality.
+        prediction = self.model.predict(image)
+
+        # Computes the predicted label based on the prediction.
+        predicted_label = np.argmax(prediction[0].numpy()[0])
+
+        # Prints the prediction results.
+        if predicted_label == 0:
+            print("Class: No FLAIR Abnormality detected.")
+        else:
+            print("Class: FLAIR Abnormality detected.")
+        print(f"Confidence score: {float(prediction[0].numpy()[0][predicted_label])}")
+        print()
