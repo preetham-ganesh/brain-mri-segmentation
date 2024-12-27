@@ -1,6 +1,7 @@
 import os
 
 from sklearn.model_selection import train_test_split
+import tensorflow as tf
 
 from typing import Dict, List, Any
 
@@ -117,4 +118,50 @@ class Dataset(object):
             f"No. of examples in the new validation data: {self.n_validation_examples}"
         )
         print(f"No. of examples in the new test data: {self.n_test_examples}")
+        print()
+
+    def shuffle_slice_dataset(self) -> None:
+        """Converts split data into tensor dataset & slices them based on batch size.
+
+        Converts split data into input & target data. Zips the input & target data, and slices them based on batch size.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        # Zips images & classes into single tensor, and shuffles it.
+        self.train_dataset = tf.data.Dataset.from_tensor_slices(
+            (self.train_images_file_paths, self.train_masks_file_paths)
+        )
+        self.validation_dataset = tf.data.Dataset.from_tensor_slices(
+            (self.validation_images_file_paths, self.validation_masks_file_paths)
+        )
+        self.test_dataset = tf.data.Dataset.from_tensor_slices(
+            (self.test_images_file_paths, self.test_masks_file_paths)
+        )
+
+        # Slices the combined dataset based on batch size, and drops remainder values.
+        self.batch_size = self.model_configuration["model"]["batch_size"]
+        self.train_dataset = self.train_dataset.batch(
+            self.batch_size, drop_remainder=True
+        )
+        self.validation_dataset = self.validation_dataset.batch(
+            self.batch_size, drop_remainder=True
+        )
+        self.test_dataset = self.test_dataset.batch(
+            self.batch_size, drop_remainder=True
+        )
+
+        # Computes number of steps per epoch for all dataset.
+        self.n_train_steps_per_epoch = self.n_train_examples // self.batch_size
+        self.n_validation_steps_per_epoch = (
+            self.n_validation_examples // self.batch_size
+        )
+        self.n_test_steps_per_epoch = self.n_test_examples // self.batch_size
+
+        print(f"No. of train steps per epoch: {self.n_train_steps_per_epoch}")
+        print(f"No. of validation steps per epoch: {self.n_validation_steps_per_epoch}")
+        print(f"No. of test steps per epoch: {self.n_test_steps_per_epoch}")
         print()
