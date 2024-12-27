@@ -2,6 +2,7 @@ import os
 
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
+import numpy as np
 
 from typing import Dict, List, Any
 
@@ -165,3 +166,25 @@ class Dataset(object):
         print(f"No. of validation steps per epoch: {self.n_validation_steps_per_epoch}")
         print(f"No. of test steps per epoch: {self.n_test_steps_per_epoch}")
         print()
+
+    def threshold_image(self, image: np.ndarray) -> np.ndarray:
+        """Thresholds image to have better distinction of regions in image.
+
+        Thresholds image to have better distinction of regions in image.
+
+        Args:
+            image: A NumPy array for the image.
+
+        Returns:
+            A NumPy array for the thresholded version of the image.
+        """
+        # Checks type & values of arguments.
+        assert isinstance(
+            image, np.ndarray
+        ), "Variable image should be of type 'numpy.ndarray'."
+
+        # Thresholds image to have better distinction of regions in image.
+        thresholded_image = np.where(
+            image > self.model_configuration["model"]["threshold"], 255, 0
+        )
+        return thresholded_image
