@@ -147,3 +147,21 @@ class Train(object):
                 os.path.join(self.reports_directory_path, "model_plot.png"),
                 f"v{self.model_version}",
             )
+
+    def initialize_metric_trackers(self) -> None:
+        """Initializes trackers which computes the mean of all metrics.
+
+        Initializes trackers which computes the mean of all metrics.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        self.train_loss = tf.keras.metrics.Mean(name="train_loss")
+        self.validation_loss = tf.keras.metrics.Mean(name="validation_loss")
+        self.train_dice = tf.keras.metrics.Mean(name="train_dice_coefficient")
+        self.validation_dice = tf.keras.metrics.Mean(name="validation_dice_coefficient")
+        self.train_iou = tf.keras.metrics.Mean(name="train_iou")
+        self.validation_iou = tf.keras.metrics.Mean(name="validation_iou")
