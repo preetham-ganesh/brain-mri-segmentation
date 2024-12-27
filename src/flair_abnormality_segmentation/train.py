@@ -1,8 +1,9 @@
 import os
 
 import tensorflow as tf
+import mlflow
 
-from src.utils import load_json_file
+from src.utils import load_json_file, check_directory_path_existence
 from src.flair_abnormality_segmentation.dataset import Dataset
 from src.flair_abnormality_segmentation.model import UNet
 
@@ -96,9 +97,53 @@ class Train(object):
             f"v{self.model_version}",
             "checkpoints",
         )
-        self.checkpoint = tf.train.Checkpoint(model=self.model)
+        self.checkpoint = tf.train.Checkpoint(
+            optimizer=self.optimizer, model=self.model
+        )
         self.manager = tf.train.CheckpointManager(
             self.checkpoint, directory=self.checkpoint_directory_path, max_to_keep=1
         )
         print("Finished loading model for current configuration.")
         print()
+
+    def generate_model_summary_and_plot(self, plot: bool) -> None:
+        """Generates summary & plot for loaded model.
+
+        Generates summary & plot for loaded model.
+
+        Args:
+            pool: A boolean value to whether generate model plot or not.
+
+        Returns:
+            None.
+        """
+        # Builds plottable graph for the model.
+        model = self.model.build_graph()
+
+        # Compiles the model to log the model summary.
+        model_summary = list()
+        model.summary(print_fn=lambda x: model_summary.append(x))
+        model_summary = "\n".join(model_summary)
+        print(model_summary)
+        mlflow.log_text(model_summary, f"v{self.model_version}/model_summary.txt")
+
+        # Creates the following directory path if it does not exist.
+        self.reports_directory_path = check_directory_path_existence(
+            f"models/flair_abnormality_segmentation/v{self.model_version}/reports"
+        )
+
+        # Plots the model & saves it as a PNG file.
+        if plot:
+            tf.keras.utils.plot_model(
+                model,
+                os.path.join(self.reports_directory_path, "model_plot.png"),
+                show_shapes=True,
+                show_layer_names=True,
+                expand_nested=True,
+            )
+
+            # Logs the saved model plot PNG file.
+            mlflow.log_artifact(
+                os.path.join(self.reports_directory_path, "model_plot.png"),
+                f"v{self.model_version}",
+            )
