@@ -1,7 +1,10 @@
 import os
 
+import tensorflow as tf
+
 from src.utils import load_json_file
 from src.flair_abnormality_segmentation.dataset import Dataset
+from src.flair_abnormality_segmentation.model import UNet
 
 
 class Train(object):
@@ -66,3 +69,36 @@ class Train(object):
 
         # Converts split data into tensor dataset & slices them based on batch size.
         self.dataset.shuffle_slice_dataset()
+
+    def load_model(self) -> None:
+        """Loads model & other utilies based on model configuration.
+
+        Loads model & other utilies based on model configuration.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        # Loads model for current model configuration.
+        self.model = UNet(self.model_configuration)
+
+        # Loads the optimizer.
+        self.optimizer = tf.keras.optimizers.Adam(
+            learning_rate=self.model_configuration["model"]["learning_rate"]
+        )
+
+        # Creates checkpoint manager for the neural network model.
+        self.checkpoint_directory_path = os.path.join(
+            self.home_directory_path,
+            "models/flair_abnormality_segmentation",
+            f"v{self.model_version}",
+            "checkpoints",
+        )
+        self.checkpoint = tf.train.Checkpoint(model=self.model)
+        self.manager = tf.train.CheckpointManager(
+            self.checkpoint, directory=self.checkpoint_directory_path, max_to_keep=1
+        )
+        print("Finished loading model for current configuration.")
+        print()
