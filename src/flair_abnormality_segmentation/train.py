@@ -368,7 +368,7 @@ class Train(object):
             print(
                 f"Epoch={epoch + 1}, Batch={batch}, Train loss={self.train_loss.result().numpy():.3f}, "
                 + f"Train coefficient={self.train_dice.result().numpy():.3f}, "
-                + f"Train IoU={self.train_iou.result().numpy():.3f}"
+                + f"Train IoU={self.train_iou.result().numpy():.3f}, "
                 + f"Time taken={(batch_end_time - batch_start_time):.3f} sec."
             )
 
@@ -378,6 +378,54 @@ class Train(object):
                 "train_loss": self.train_loss.result().numpy(),
                 "train_dice_coefficient": self.train_dice.result().numpy(),
                 "train_iou": self.train_iou.result().numpy(),
+            },
+            step=epoch,
+        )
+        print("")
+
+    def validate_model_per_epoch(self, epoch: int) -> None:
+        """Validates the model using the current validation dataset.
+
+        Validates the model using the current validation dataset.
+
+        Args:
+            epoch: An integer for the number of current epoch.
+
+        Returns:
+            None
+        """
+        # Asserts type & value of the arguments.
+        assert isinstance(epoch, int), "Variable epoch should be of type 'int'."
+
+        # Iterates across batches in the validation dataset.
+        for batch, (image_file_paths, mask_file_paths) in enumerate(
+            self.dataset.validation_dataset.take(
+                self.dataset.n_validation_steps_per_epoch
+            )
+        ):
+            batch_start_time = time.time()
+
+            # Loads input & target batch images for file paths in current batch.
+            input_batch, target_batch = self.dataset.load_input_target_images(
+                list(image_file_paths.numpy()), list(mask_file_paths.numpy())
+            )
+
+            # Validates the model using the current input and target batch.
+            self.validation_step(input_batch, target_batch)
+            batch_end_time = time.time()
+            print(
+                f"Epoch={epoch + 1}, Batch={batch}, Validation loss={self.validation_loss.result().numpy():.3f}, "
+                + f"Validation coefficient={self.validation_dice.result().numpy():.3f}, "
+                + f"Validation IoU={self.validation_iou.result().numpy():.3f}, "
+                + f"Time taken={(batch_end_time - batch_start_time):.3f} sec."
+            )
+
+        # Logs train metrics for current epoch.
+        mlflow.log_metrics(
+            {
+                "validation_loss": self.train_loss.result().numpy(),
+                "validation_dice_coefficient": self.train_dice.result().numpy(),
+                "validation_iou": self.train_iou.result().numpy(),
             },
             step=epoch,
         )
