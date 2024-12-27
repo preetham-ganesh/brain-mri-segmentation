@@ -4,6 +4,8 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import numpy as np
 
+from src.preprocess_data import load_image
+
 from typing import Dict, List, Any
 
 
@@ -188,3 +190,68 @@ class Dataset(object):
             image > self.model_configuration["model"]["threshold"], 255, 0
         )
         return thresholded_image
+
+    def load_input_target_batches(
+        self, image_file_paths: List[str], mask_file_paths: List[str]
+    ) -> List[tf.Tensor]:
+        """Loads input & mask images for current batch as tensors.
+
+        Loads input & mask images for current batch as tensors.
+
+        Args:
+            image_file_paths: A list of strings for locations of images in current batch.
+            mask_file_paths: A list of strings for locations of masks in current batch.
+
+        Returns:
+            A list of tensors for input & target batch of images.
+        """
+        # Checks types & values of arguments.
+        assert isinstance(
+            image_file_paths, list
+        ), "Variable images_file_paths should be of type 'list'."
+        assert isinstance(
+            mask_file_paths, list
+        ), "Variable mask_file_paths should be of type 'str'."
+
+        # Zero array for input batch of shape (batch, height, width, 3), & target batch of shape (batch, height, width).
+        input_batch = np.zeros(
+            shape=(
+                len(image_file_paths),
+                self.model_configuration["model"]["final_image_height"],
+                self.model_configuration["model"]["final_image_width"],
+                self.model_configuration["model"]["n_channels"],
+            ),
+            dtype=np.float32,
+        )
+        target_batch = np.zeros(
+            shape=(
+                len(image_file_paths),
+                self.model_configuration["model"]["final_image_height"],
+                self.model_configuration["model"]["final_image_width"],
+            )
+        )
+
+        # Iterates across images & mask file paths in current batch.
+        for id_0 in range(len(image_file_paths)):
+            # Loads the image & mask for the current image paths.
+            input_image = load_image(str(image_file_paths[id_0], "UTF-8"))
+            target_image = load_image(str(mask_file_paths[id_0], "UTF-8"))
+
+            # Thresholds image to have better distinction of regions in image.
+            input_image = self.threshold_image(input_image)
+
+            # Adds loaded & preprocessed input & target images to corresponding batch arrays.
+            input_batch[id_0, :, :, :] = input_image
+            target_batch[id_0, :, :] = target_image
+
+        # Converts input & target batch lists into tensors.
+        input_batch = tf.convert_to_tensor(input_batch, dtype=tf.float32)
+        target_batch = tf.convert_to_tensor(target_batch, dtype=tf.float32)
+
+        # Normalizes the input batches from [0, 255] to [0, 1] range
+        input_batch = input_batch / 255.0
+        target_batch = target_batch / 255.0
+
+        # Adds an extra dimension to the target batch.
+        target_batch = tf.expand_dims(target_batch, axis=-1)
+        return [input_batch, target_batch]
