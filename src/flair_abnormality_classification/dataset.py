@@ -44,9 +44,9 @@ class Dataset(object):
             None.
         """
         # Creates absolute directory paths for the following image directories.
-        base_directory_path = (
-            "data/processed_data/lgg_mri_segmentation/"
-            + f"v{self.model_configuration['dataset']['version']}"
+        base_directory_path = os.path.join(
+            "data/processed_data/lgg_mri_segmentation/",
+            f"v{self.model_configuration['dataset']['version']}",
         )
         images_directory_paths = {
             "no_abnormality": check_directory_path_existence(
