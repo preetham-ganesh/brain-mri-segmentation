@@ -1,5 +1,7 @@
 import os
 
+from sklearn.model_selection import train_test_split
+
 from typing import Dict, List, Any
 
 
@@ -64,4 +66,55 @@ class Dataset(object):
         print(
             f"No. of valid images in the processed dataset: {len(self.images_file_paths)}"
         )
+        print()
+
+    def split_dataset(self) -> None:
+        """Splits file paths into new train, validation & test file paths.
+
+        Splits file paths into new train, validation & test file paths.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        # Splits the original images data into new train, validation & test data.
+        (
+            self.train_images_file_paths,
+            self.test_images_file_paths,
+            self.train_masks_file_paths,
+            self.test_masks_file_paths,
+        ) = train_test_split(
+            self.images_file_paths,
+            self.masks_file_paths,
+            test_size=self.model_configuration["dataset"]["split_percentage"]["test"],
+            shuffle=True,
+            random_state=42,
+        )
+        (
+            self.train_images_file_paths,
+            self.validation_images_file_paths,
+            self.train_masks_file_paths,
+            self.validation_masks_file_paths,
+        ) = train_test_split(
+            self.train_images_file_paths,
+            self.train_masks_file_paths,
+            test_size=self.model_configuration["dataset"]["split_percentage"][
+                "validation"
+            ],
+            shuffle=True,
+            random_state=42,
+        )
+
+        # Stores size of new train, validation and test data.
+        self.n_train_examples = len(self.train_images_file_paths)
+        self.n_validation_examples = len(self.validation_images_file_paths)
+        self.n_test_examples = len(self.test_images_file_paths)
+
+        print(f"No. of examples in the new train data: {self.n_train_examples}")
+        print(
+            f"No. of examples in the new validation data: {self.n_validation_examples}"
+        )
+        print(f"No. of examples in the new test data: {self.n_test_examples}")
         print()
