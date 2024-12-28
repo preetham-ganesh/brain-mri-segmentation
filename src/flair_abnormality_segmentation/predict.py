@@ -14,9 +14,10 @@ logging.getLogger("tensorflow").setLevel(logging.FATAL)
 
 import tensorflow as tf
 import numpy as np
+import skimage
 
 
-from src.utils import load_json_file
+from src.utils import load_json_file, check_directory_path_existence
 from src.flair_abnormality_segmentation.dataset import Dataset
 from src.preprocess_data import load_image
 
@@ -142,3 +143,58 @@ class FlairAbnormalitySegmentation(object):
         predicted_image = self.dataset.threshold_image(predicted_image)
         predicted_image = predicted_image.astype(np.uint8)
         return predicted_image
+
+    def predict(self, image_file_path: str) -> None:
+        """Predicts mask for the current image using the current model.
+
+        Predicts mask for the current image using the current model.
+
+        Args:
+            image_file_path: A string for the location where the image is located.
+
+        Returns:
+            None
+        """
+        # Asserts type & value of the arguments.
+        assert isinstance(
+            image_file_path, str
+        ), "Variable image_file_path should be of type 'str'."
+
+        # Loads & preprocesses image based on segmentation model requirements.
+        image, model_input_image = self.load_preprocess_input_image(image_file_path)
+
+        # Predicts the class for each pixel in the current image input.
+        prediction = self.model.predict(model_input_image)
+
+        # Converts the prediction from the segmentation model into an image.
+        predicted_image = self.postprocess_prediction(prediction[0].numpy())
+
+        # Creates the following path if it does not exist.
+        self.predicted_images_directory_path = check_directory_path_existence(
+            f"models/flair_abnormality_segmentation/v{self.model_version}/predictions"
+        )
+
+        # Computes number of images predicted using this model.
+        images_predicted = [
+            name
+            for name in os.listdir(self.predicted_images_directory_path)
+            if name[0] != "."
+        ]
+        n_images_predicted = int(len(images_predicted) / 2)
+
+        # Saves input, and predicted images.
+        skimage.io.imsave(
+            f"{self.predicted_images_directory_path}/{n_images_predicted}_input.png",
+            image,
+        )
+        print(
+            f"Original image saved at {self.predicted_images_directory_path}/{n_images_predicted}_input.png."
+        )
+        skimage.io.imsave(
+            f"{self.predicted_images_directory_path}/{n_images_predicted}_predicted.png",
+            predicted_image,
+        )
+        print(
+            f"Predicted mask image saved at {self.predicted_images_directory_path}/{n_images_predicted}_predicted.png."
+        )
+        print()
