@@ -46,6 +46,7 @@ class Dataset(object):
         base_directory_path = os.path.join(
             "data/processed_data/lgg_mri_segmentation/",
             f"v{self.model_configuration['dataset']['version']}",
+            "abnormality",
         )
 
         # Lists names of files in the directory.

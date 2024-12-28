@@ -98,9 +98,7 @@ class Train(object):
             f"v{self.model_version}",
             "checkpoints",
         )
-        self.checkpoint = tf.train.Checkpoint(
-            optimizer=self.optimizer, model=self.model
-        )
+        self.checkpoint = tf.train.Checkpoint(model=self.model)
         self.manager = tf.train.CheckpointManager(
             self.checkpoint, directory=self.checkpoint_directory_path, max_to_keep=1
         )
@@ -367,7 +365,7 @@ class Train(object):
             batch_end_time = time.time()
             print(
                 f"Epoch={epoch + 1}, Batch={batch}, Train loss={self.train_loss.result().numpy():.3f}, "
-                + f"Train coefficient={self.train_dice.result().numpy():.3f}, "
+                + f"Train dice coefficient={self.train_dice.result().numpy():.3f}, "
                 + f"Train IoU={self.train_iou.result().numpy():.3f}, "
                 + f"Time taken={(batch_end_time - batch_start_time):.3f} sec."
             )
@@ -406,7 +404,7 @@ class Train(object):
             batch_start_time = time.time()
 
             # Loads input & target batch images for file paths in current batch.
-            input_batch, target_batch = self.dataset.load_input_target_images(
+            input_batch, target_batch = self.dataset.load_input_target_batches(
                 list(image_file_paths.numpy()), list(mask_file_paths.numpy())
             )
 
