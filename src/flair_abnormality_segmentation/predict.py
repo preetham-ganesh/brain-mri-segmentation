@@ -198,3 +198,41 @@ class FlairAbnormalitySegmentation(object):
             f"Predicted mask image saved at {self.predicted_images_directory_path}/{n_images_predicted}_predicted.png."
         )
         print()
+
+
+def main():
+    print()
+
+    # Parses the arguments.
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-mv",
+        "--model_version",
+        type=str,
+        required=True,
+        help="Version of the model used to perform the prediction.",
+    )
+    parser.add_argument(
+        "-ifp",
+        "--image_file_path",
+        type=str,
+        required=True,
+        help="Location where the image is located.",
+    )
+    args = parser.parse_args()
+
+    # Creates an object for Predict class.
+    segmentation = FlairAbnormalitySegmentation(args.model_version)
+
+    # Loads model configuration based on model name & model version.
+    segmentation.load_model_configuration()
+
+    # Loads model based model configuration.
+    segmentation.load_model()
+
+    # Predicts mask for the current image using the current model.
+    segmentation.predict(args.image_file_path)
+
+
+if __name__ == "__main__":
+    main()
