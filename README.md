@@ -5,6 +5,7 @@ This repository includes the code for training deep learning models used in the 
 ## Contents
 
 - [Installation](https://github.com/preetham-ganesh/brain-mri-segmentation#installation)
+- [Dataset](https://github.com/preetham-ganesh/brain-mri-segmentation#dataset)
 - [Usage](https://github.com/preetham-ganesh/brain-mri-segmentation#usage)
 - [Model Details](https://github.com/preetham-ganesh/brain-mri-segmentation#model-details)
 - [Releases](https://github.com/preetham-ganesh/brain-mri-segmentation#releases)
@@ -26,3 +27,8 @@ Requires: [Pip](https://pypi.org/project/pip/)
 ```bash
 pip install --no-cache-dir -r requirements.txt
 ```
+
+## Dataset
+
+- The data was downloaded from Kaggle - Brain MRI segmentation [[Link]](https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation).
+- After downloading the data, 'archive.zip' file should be saved in the following data directory path 'data/raw_data/'.
