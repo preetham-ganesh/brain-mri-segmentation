@@ -102,3 +102,10 @@ or
 ```bash
 python3 src/flair_mri_segmentation/predict.py -mv 1.0.0 --ifp <file_path>
 ```
+
+## Model Details
+
+| Model name                       | Model Version | Description                                                                                       | Model URL                                                                                        |
+| -------------------------------- | ------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| FLAIR Abnormality Classification | v1.4.0        | - A CNN model that classifies whether a given Brain MRI image has abnormality.                    | [Hugging Face](https://huggingface.co/preethamganesh/brain-mri-flair-abnormality-classification) |
+| FLAIR Abnormality Segmentation   | v1.0.0        | - A U-Net model with MobileNetV2 pretrained on ImageNet as Encoder, and custom layers as decoder. | [Hugging Face](https://huggingface.co/preethamganesh/brain-mri-flair-abnormality-segmentation)   |
