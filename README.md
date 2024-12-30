@@ -8,7 +8,6 @@ This repository includes the code for training deep learning models used in the 
 - [Dataset](https://github.com/preetham-ganesh/brain-mri-segmentation#dataset)
 - [Usage](https://github.com/preetham-ganesh/brain-mri-segmentation#usage)
 - [Model Details](https://github.com/preetham-ganesh/brain-mri-segmentation#model-details)
-- [Releases](https://github.com/preetham-ganesh/brain-mri-segmentation#releases)
 - [Support](https://github.com/preetham-ganesh/brain-mri-segmentation#support)
 
 ## Installation
@@ -109,3 +108,7 @@ python3 src/flair_mri_segmentation/predict.py -mv 1.0.0 --ifp <file_path>
 | -------------------------------- | ------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | FLAIR Abnormality Classification | v1.4.0        | - A CNN model that classifies whether a given Brain MRI image has abnormality.                    | [Hugging Face](https://huggingface.co/preethamganesh/brain-mri-flair-abnormality-classification) |
 | FLAIR Abnormality Segmentation   | v1.0.0        | - A U-Net model with MobileNetV2 pretrained on ImageNet as Encoder, and custom layers as decoder. | [Hugging Face](https://huggingface.co/preethamganesh/brain-mri-flair-abnormality-segmentation)   |
+
+## Support
+
+For any queries regarding the repository please contact 'preetham.ganesh2021@gmail.com'.
