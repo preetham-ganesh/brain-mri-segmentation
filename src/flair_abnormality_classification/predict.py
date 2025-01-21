@@ -73,12 +73,15 @@ class FlairAbnormalityClassification(object):
         """
         # Loads the tensorflow serialized model using model name & version.
         self.home_directory_path = os.getcwd()
-        self.model = tf.saved_model.load(
+        exported_model = tf.saved_model.load(
             os.path.join(
                 self.home_directory_path,
                 f"models/flair_abnormality_classification/v{self.model_version}/serialized",
             )
         )
+
+        # Get the callable signature (default is "serving_default")
+        self.model = exported_model.signatures["serving_default"]
 
         # Initializes object for the Dataset class.
         self.dataset = Dataset(self.model_configuration)
@@ -142,17 +145,19 @@ class FlairAbnormalityClassification(object):
         image = self.load_preprocess_image(image_file_path)
 
         # Predicts if the brain MRI image has FLAIR abnormality.
-        prediction = self.model.predict(image)
+        prediction = self.model(image)
 
         # Computes the predicted label based on the prediction.
-        predicted_label = np.argmax(prediction[0].numpy()[0])
+        predicted_label = np.argmax(prediction["output_0"].numpy()[0])
 
         # Prints the prediction results.
         if predicted_label == 0:
             print("Class: No FLAIR Abnormality detected.")
         else:
             print("Class: FLAIR Abnormality detected.")
-        print(f"Confidence score: {float(prediction[0].numpy()[0][predicted_label])}")
+        print(
+            f"Confidence score: {float(prediction['output_0'].numpy()[0][predicted_label])}"
+        )
         print()
 
 
