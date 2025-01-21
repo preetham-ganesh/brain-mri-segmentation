@@ -86,6 +86,9 @@ class Train(object):
         # Loads model for current model configuration.
         self.model = ImageClassification(self.model_configuration)
 
+        # Builds plottable graph for the model.
+        self.model = self.model.build_graph()
+
         # Loads the optimizer.
         self.optimizer = tf.keras.optimizers.Adam(
             learning_rate=self.model_configuration["model"]["learning_rate"]
@@ -118,12 +121,9 @@ class Train(object):
         Returns:
             None.
         """
-        # Builds plottable graph for the model.
-        model = self.model.build_graph()
-
         # Compiles the model to log the model summary.
         model_summary = list()
-        model.summary(print_fn=lambda x: model_summary.append(x))
+        self.model.summary(print_fn=lambda x: model_summary.append(x))
         model_summary = "\n".join(model_summary)
         print(model_summary)
         mlflow.log_text(model_summary, f"v{self.model_version}/model_summary.txt")
@@ -136,7 +136,7 @@ class Train(object):
         # Plots the model & saves it as a PNG file.
         if plot:
             tf.keras.utils.plot_model(
-                model,
+                self.model,
                 os.path.join(self.reports_directory_path, "model_plot.png"),
                 show_shapes=True,
                 show_layer_names=True,
@@ -243,9 +243,9 @@ class Train(object):
 
         # Computes the model output for current batch, and metrics for current model output.
         with tf.GradientTape() as tape:
-            predictions = self.model([input_batch], training=True, masks=None)
-            loss = self.compute_loss(target_batch, predictions[0])
-            accuracy = self.compute_accuracy(target_batch, predictions[0])
+            predictions = self.model([input_batch], training=True)
+            loss = self.compute_loss(target_batch, predictions)
+            accuracy = self.compute_accuracy(target_batch, predictions)
 
         # Computes gradients using loss and model variables.
         gradients = tape.gradient(loss, self.model.trainable_variables)
@@ -278,9 +278,9 @@ class Train(object):
         ), "Variable target_batch should be of type 'tf.Tensor'."
 
         # Computes the model output for current batch, and metrics for current model output.
-        predictions = self.model([input_batch], training=False, masks=None)
-        loss = self.compute_loss(target_batch, predictions[0])
-        accuracy = self.compute_accuracy(target_batch, predictions[0])
+        predictions = self.model([input_batch], training=False)
+        loss = self.compute_loss(target_batch, predictions)
+        accuracy = self.compute_accuracy(target_batch, predictions)
 
         # Computes batch metrics and appends it to main metrics.
         self.validation_loss(loss)
@@ -516,9 +516,7 @@ class Train(object):
         self.reset_metrics_trackers()
 
         # Restore latest saved checkpoint if available.
-        self.checkpoint.restore(
-            tf.train.latest_checkpoint(self.checkpoint_directory_path)
-        ).assert_consumed()
+        self.checkpoint.restore(self.manager.latest_checkpoint)
 
         # Iterates across batches in the train dataset.
         for batch, (images, labels) in enumerate(
@@ -557,97 +555,41 @@ class Train(object):
         """
         # Defines input shape for exported model's input signature.
         input_shape = [
-            None,
+            2,
             self.model_configuration["model"]["final_image_height"],
             self.model_configuration["model"]["final_image_width"],
             self.model_configuration["model"]["n_channels"],
         ]
 
-        class ExportModel(tf.Module):
-            """Exports trained tensorflow model as tensorflow module for serving."""
+        # Predicts output for the sample input using the model
+        input_data = tf.ones(input_shape)
+        output_0 = self.model.predict(input_data)
 
-            def __init__(self, model: tf.keras.Model) -> None:
-                """Initializes the variables in the class.
-
-                    Initializes the variables in the class.
-
-                Args:
-                    model: A tensorflow model for the model trained with latest checkpoints.
-
-                Returns:
-                    None.
-                """
-                # Asserts type of input arguments.
-                assert isinstance(
-                    model, tf.keras.Model
-                ), "Variable model should be of type 'tensorflow.keras.Model'."
-
-                # Initializes class variables.
-                self.model = model
-
-            @tf.function(
-                input_signature=[tf.TensorSpec(shape=input_shape, dtype=tf.float32)]
-            )
-            def predict(self, images: tf.Tensor) -> tf.Tensor:
-                """Input image is passed through the model for prediction.
-
-                Input image is passed through the model for prediction.
-
-                Args:
-                    images: A tensor for the processed image for which the model should predict the result.
-
-                Return:
-                    An integer for the number predicted by the model for the current image.
-                """
-                prediction = self.model([images], training=False, masks=None)
-                return prediction
-
-        # Exports trained tensorflow model as tensorflow module for serving.
-        exported_model = ExportModel(self.model)
-
-        # Predicts output for the sample input using the Exported model.
-        output_0 = exported_model.predict(
-            tf.ones(
-                (
-                    10,
-                    self.model_configuration["model"]["final_image_height"],
-                    self.model_configuration["model"]["final_image_width"],
-                    self.model_configuration["model"]["n_channels"],
-                )
-            )
+        # Saves the model in TF Saved Model format.
+        save_path = os.path.join(
+            self.home_directory_path,
+            f"models/flair_abnormality_classification/v{self.model_version}/serialized",
         )
-
-        # Saves the tensorflow object created from the loaded model.
-        home_directory_path = os.getcwd()
-        tf.saved_model.save(
-            exported_model,
-            os.path.join(
-                home_directory_path,
-                f"models/flair_abnormality_classification/v{self.model_version}/serialized",
-            ),
-        )
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        self.model.export(save_path)
 
         # Loads the serialized model to check if the loaded model is callable.
         exported_model = tf.saved_model.load(
             os.path.join(
-                home_directory_path,
+                self.home_directory_path,
                 f"models/flair_abnormality_classification/v{self.model_version}/serialized",
             )
         )
-        output_1 = exported_model.predict(
-            tf.ones(
-                (
-                    10,
-                    self.model_configuration["model"]["final_image_height"],
-                    self.model_configuration["model"]["final_image_width"],
-                    self.model_configuration["model"]["n_channels"],
-                )
-            )
-        )
+
+        # Get the callable signature (default is "serving_default")
+        serving_model = exported_model.signatures["serving_default"]
+
+        # Predicts output for the sample input using the model
+        output_1 = serving_model(input_data)
 
         # Checks if the shape between output from saved & loaded models matches.
         assert (
-            output_0[0].shape == output_1[0].shape
+            output_0.shape == output_1["output_0"].shape
         ), "Shape does not match between the output from saved & loaded models."
         print("Finished serializing model & configuration files.")
         print()
@@ -655,7 +597,7 @@ class Train(object):
         # Logs serialized model as artifact.
         mlflow.log_artifacts(
             os.path.join(
-                home_directory_path,
+                self.home_directory_path,
                 f"models/flair_abnormality_classification/v{self.model_version}/serialized",
             ),
             f"v{self.model_configuration['version']}/model",
