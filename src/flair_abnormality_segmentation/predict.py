@@ -76,12 +76,15 @@ class FlairAbnormalitySegmentation(object):
         """
         # Loads the tensorflow serialized model using model name & version.
         self.home_directory_path = os.getcwd()
-        self.model = tf.saved_model.load(
+        exported_model = tf.saved_model.load(
             os.path.join(
                 self.home_directory_path,
                 f"models/flair_abnormality_segmentation/v{self.model_version}/serialized",
             )
         )
+
+        # Get the callable signature (default is "serving_default")
+        self.model = exported_model.signatures["serving_default"]
 
         # Initializes object for the Dataset class.
         self.dataset = Dataset(self.model_configuration)
@@ -106,14 +109,14 @@ class FlairAbnormalitySegmentation(object):
         image = load_image(image_file_path)
 
         # Thresholds image to have better distinction of regions in image.
-        thresholded_image = self.dataset.threshold_image(image)
-
-        # Adds an extra dimension to the image.
-        model_input_image = np.expand_dims(thresholded_image, axis=0)
+        model_input_image = self.dataset.threshold_image(image)
 
         # Casts input image to float32 and normalizes the image from [0, 255] range to [0, 1] range.
-        model_input_image = np.float32(model_input_image)
+        model_input_image = tf.convert_to_tensor(model_input_image, dtype=tf.float32)
         model_input_image = model_input_image / 255.0
+
+        # Adds an extra dimension to the image.
+        model_input_image = tf.expand_dims(model_input_image, axis=0)
         return [image, model_input_image]
 
     def postprocess_prediction(self, prediction: np.ndarray) -> np.ndarray:
@@ -164,10 +167,10 @@ class FlairAbnormalitySegmentation(object):
         image, model_input_image = self.load_preprocess_input_image(image_file_path)
 
         # Predicts the class for each pixel in the current image input.
-        prediction = self.model.predict(model_input_image)
+        prediction = self.model(model_input_image)
 
         # Converts the prediction from the segmentation model into an image.
-        predicted_image = self.postprocess_prediction(prediction[0].numpy())
+        predicted_image = self.postprocess_prediction(prediction["output_0"].numpy())
 
         # Creates the following path if it does not exist.
         self.predicted_images_directory_path = check_directory_path_existence(
