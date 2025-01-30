@@ -104,10 +104,10 @@ python3 src/flair_mri_segmentation/predict.py -mv 1.0.0 --ifp <file_path>
 
 ## Model Details
 
-| Model name                       | Model Version | Description                                                                                       | Performance                              | Model URL                                                                                         |
-| -------------------------------- | ------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| FLAIR Abnormality Classification | v1.2.0        | - A CNN model that classifies whether a given Brain MRI image has abnormality.                    | Accuracy: 95.8%                          | [Hugging Face](https://huggingface.co/preethamganesh/bms-flair-abnormality-classification-v1.2.0) |
-| FLAIR Abnormality Segmentation   | v1.0.0        | - A U-Net model with MobileNetV2 pretrained on ImageNet as Encoder, and custom layers as decoder. | Dice Coefficient: 75.3% <br/> IoU: 60.9% | [Hugging Face](https://huggingface.co/preethamganesh/bms-flair-abnormality-segmentation-v1.0.0)   |
+| Model name                       | Model Version | Description                                                                                       | Performance                            | Model URL                                                                                         |
+| -------------------------------- | ------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| FLAIR Abnormality Classification | v1.2.0        | - A CNN model that classifies whether a given Brain MRI image has abnormality.                    | Accuracy: 95.3%                        | [Hugging Face](https://huggingface.co/preethamganesh/bms-flair-abnormality-classification-v1.2.0) |
+| FLAIR Abnormality Segmentation   | v1.0.0        | - A U-Net model with MobileNetV2 pretrained on ImageNet as Encoder, and custom layers as decoder. | Dice Coefficient: 0.77 <br/> IoU: 0.62 | [Hugging Face](https://huggingface.co/preethamganesh/bms-flair-abnormality-segmentation-v1.0.0)   |
 
 ## Support
 
