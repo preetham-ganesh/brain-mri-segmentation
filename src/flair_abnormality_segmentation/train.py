@@ -423,9 +423,9 @@ class Train(object):
         # Logs train metrics for current epoch.
         mlflow.log_metrics(
             {
-                "validation_loss": self.train_loss.result().numpy(),
-                "validation_dice_coefficient": self.train_dice.result().numpy(),
-                "validation_iou": self.train_iou.result().numpy(),
+                "validation_loss": self.validation_loss.result().numpy(),
+                "validation_dice_coefficient": self.validation_dice.result().numpy(),
+                "validation_iou": self.validation_iou.result().numpy(),
             },
             step=epoch,
         )

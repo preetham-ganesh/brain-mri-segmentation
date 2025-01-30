@@ -101,6 +101,12 @@ class UNet(tf.keras.Model):
                     axis=config["axis"]
                 )
 
+            # If layer's name is like 'resize_', a Resizing layer is initialized based on layer configuration.
+            elif name.split("_")[0] == "resize":
+                self.model_layers[name] = tf.keras.layers.Resizing(
+                    height=config["height"], width=config["width"], name=name
+                )
+
     def call(
         self,
         inputs: List[tf.Tensor],
@@ -121,8 +127,12 @@ class UNet(tf.keras.Model):
         """
         x = inputs[0]
 
+        # Resizes the input image to the final image height & width.
+        if self.model_configuration["model"]["layers"]["arrangement"][0] == "resize":
+            x = self.model_layers["resize"](x)
+
         # If the first layer is mobilenet, then the features are extracted.
-        if self.model_configuration["model"]["layers"]["arrangement"][0] == "mobilenet":
+        if self.model_configuration["model"]["layers"]["arrangement"][1] == "mobilenet":
             mobilenet_output_names = self.model_configuration["model"]["layers"][
                 "configuration"
             ]["mobilenet"]["output_layer"]
@@ -136,7 +146,7 @@ class UNet(tf.keras.Model):
             }
 
         # Iterates across the layers arrangement, and predicts the output for each layer.
-        for name in self.model_configuration["model"]["layers"]["arrangement"][1:]:
+        for name in self.model_configuration["model"]["layers"]["arrangement"][2:]:
             # If layer's name is like 'dropout_' or 'batchnorm_', the following output is predicted.
             if name.startswith("dropout") or name.startswith("batchnorm"):
                 x = self.model_layers[name](x, training=training)
