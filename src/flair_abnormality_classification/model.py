@@ -86,6 +86,12 @@ class ImageClassification(tf.keras.Model):
             elif name.startswith("relu"):
                 self.model_layers[name] = tf.keras.layers.ReLU(name=name)
 
+            # If layer's name is like 'resize_', a Resizing layer is initialized based on layer configuration.
+            elif name.split("_")[0] == "resize":
+                self.model_layers[name] = tf.keras.layers.Resizing(
+                    height=config["height"], width=config["width"], name=name
+                )
+
     def call(
         self,
         inputs: List[tf.Tensor],
