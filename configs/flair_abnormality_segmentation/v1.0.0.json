@@ -17,6 +17,7 @@
     "patience_count": 3,
     "layers": {
       "arrangement": [
+        "resize",
         "mobilenet",
         "dropout_0",
         "upsample2d_0",
@@ -58,6 +59,7 @@
         "conv2d_8"
       ],
       "configuration": {
+        "resize": { "height": 256, "width": 256 },
         "mobilenet": {
           "include_top": false,
           "weights": "imagenet",
